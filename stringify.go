@@ -11,48 +11,48 @@ import (
 	"github.com/tliron/kutil/util"
 )
 
-func Stringify(value any, format string, indent string, strict bool, reflector *ard.Reflector) (string, error) {
+func (self *Transcriber) Stringify(value any, format string) (string, error) {
 	switch format {
 	case "yaml", "":
-		return StringifyYAML(value, indent, strict, reflector)
+		return self.StringifyYAML(value)
 
 	case "json":
-		return StringifyJSON(value, indent)
+		return self.StringifyJSON(value)
 
 	case "xjson":
-		return StringifyXJSON(value, indent, reflector)
+		return self.StringifyXJSON(value)
 
 	case "xml":
-		return StringifyXML(value, indent, reflector)
+		return self.StringifyXML(value)
 
 	case "cbor":
-		return StringifyCBOR(value)
+		return self.StringifyCBOR(value)
 
 	case "messagepack":
-		return StringifyMessagePack(value)
+		return self.StringifyMessagePack(value)
 
 	case "go":
-		return StringifyGo(value, indent)
+		return self.StringifyGo(value)
 
 	default:
 		return "", fmt.Errorf("unsupported format: %q", format)
 	}
 }
 
-func StringifyYAML(value any, indent string, strict bool, reflector *ard.Reflector) (string, error) {
+func (self *Transcriber) StringifyYAML(value any) (string, error) {
 	var writer strings.Builder
-	if err := WriteYAML(value, &writer, indent, strict, reflector); err == nil {
+	if err := self.WriteYAML(value, &writer); err == nil {
 		return writer.String(), nil
 	} else {
 		return "", err
 	}
 }
 
-func StringifyJSON(value any, indent string) (string, error) {
+func (self *Transcriber) StringifyJSON(value any) (string, error) {
 	var writer strings.Builder
-	if err := WriteJSON(value, &writer, indent); err == nil {
+	if err := self.WriteJSON(value, &writer); err == nil {
 		s := writer.String()
-		if indent == "" {
+		if self.Indent == "" {
 			// json.Encoder adds a "\n", unlike json.Marshal
 			s = strings.TrimRight(s, "\n")
 		}
@@ -62,25 +62,25 @@ func StringifyJSON(value any, indent string) (string, error) {
 	}
 }
 
-func StringifyXJSON(value any, indent string, reflector *ard.Reflector) (string, error) {
-	if value_, err := ard.PrepareForEncodingXJSON(value, reflector); err == nil {
-		return StringifyJSON(value_, indent)
+func (self *Transcriber) StringifyXJSON(value any) (string, error) {
+	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+		return self.StringifyJSON(value_)
 	} else {
 		return "", err
 	}
 }
 
-func StringifyXML(value any, indent string, reflector *ard.Reflector) (string, error) {
+func (self *Transcriber) StringifyXML(value any) (string, error) {
 	var writer strings.Builder
-	if err := WriteXML(value, &writer, indent, reflector); err == nil {
+	if err := self.WriteXML(value, &writer); err == nil {
 		return writer.String(), nil
 	} else {
 		return "", err
 	}
 }
 
-// To Base64
-func StringifyCBOR(value any) (string, error) {
+// Note: will always use base64.
+func (self *Transcriber) StringifyCBOR(value any) (string, error) {
 	if bytes, err := cbor.Marshal(value); err == nil {
 		return util.ToBase64(bytes), nil
 	} else {
@@ -88,8 +88,8 @@ func StringifyCBOR(value any) (string, error) {
 	}
 }
 
-// To Base64
-func StringifyMessagePack(value any) (string, error) {
+// Note: will always use base64.
+func (self *Transcriber) StringifyMessagePack(value any) (string, error) {
 	var buffer bytes.Buffer
 	encoder := util.NewMessagePackEncoder(&buffer)
 	if err := encoder.Encode(value); err == nil {
@@ -99,13 +99,13 @@ func StringifyMessagePack(value any) (string, error) {
 	}
 }
 
-func StringifyGo(value any, indent string) (string, error) {
-	return NewUtterConfig(indent).Sdump(value), nil
+func (self *Transcriber) StringifyGo(value any) (string, error) {
+	return self.NewUtterConfig().Sdump(value), nil
 }
 
-func NewUtterConfig(indent string) *utter.ConfigState {
+func (self *Transcriber) NewUtterConfig() *utter.ConfigState {
 	var config = utter.NewDefaultConfig()
-	config.Indent = indent
+	config.Indent = self.Indent
 	config.SortKeys = true
 	config.CommentPointers = true
 	return config

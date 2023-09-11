@@ -3,6 +3,7 @@ package transcribe
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/beevik/etree"
 	"github.com/tliron/go-ard"
@@ -10,66 +11,78 @@ import (
 	"github.com/tliron/kutil/util"
 )
 
-func Print(value any, format string, writer io.Writer, strict bool, pretty bool, base64 bool, reflector *ard.Reflector) error {
-	// Special handling for strings (ignore format)
-	if s, ok := value.(string); ok {
-		if _, err := io.WriteString(writer, s); err == nil {
-			if pretty {
-				return util.WriteNewline(writer)
-			} else {
-				return nil
-			}
-		} else {
-			return err
-		}
+// When Pretty is true, takes into account [terminal.Colorize] and uses
+// [terminal.Indent] or [terminal.IndentSpaces], overriding our Indent.
+//
+// If value is a [string] will print it as is, ignoring the format argument.
+//
+// If value is a [*etree.Document] will use [Transcriber.PrintXMLDocument],
+// ignoring the format argument.
+func (self *Transcriber) Print(value any, writer io.Writer, format string) error {
+	if string_, ok := value.(string); ok {
+		return self.PrintString(string_, writer)
 	}
 
-	// Special handling for etree (ignore format)
 	if xmlDocument, ok := value.(*etree.Document); ok {
-		return PrintXMLDocument(xmlDocument, writer, pretty)
+		return self.PrintXMLDocument(xmlDocument, writer)
 	}
 
 	switch format {
 	case "yaml", "":
-		return PrintYAML(value, writer, strict, pretty, reflector)
+		return self.PrintYAML(value, writer)
 
 	case "json":
-		return PrintJSON(value, writer, pretty)
+		return self.PrintJSON(value, writer)
 
 	case "xjson":
-		return PrintXJSON(value, writer, pretty, reflector)
+		return self.PrintXJSON(value, writer)
 
 	case "xml":
-		return PrintXML(value, writer, pretty, reflector)
+		return self.PrintXML(value, writer)
 
 	case "cbor":
-		return PrintCBOR(value, writer, base64)
+		return self.PrintCBOR(value, writer)
 
 	case "messagepack":
-		return PrintMessagePack(value, writer, base64)
+		return self.PrintMessagePack(value, writer)
 
 	case "go":
-		return PrintGo(value, writer, pretty)
+		return self.PrintGo(value, writer)
 
 	default:
 		return fmt.Errorf("unsupported format: %q", format)
 	}
 }
 
-func PrintYAML(value any, writer io.Writer, strict bool, pretty bool, reflector *ard.Reflector) error {
-	if pretty && terminal.Colorize {
-		if code, err := StringifyYAML(value, terminal.Indent, strict, reflector); err == nil {
-			return ColorizeYAML(code, writer)
-		} else {
-			return err
+func (self *Transcriber) PrintString(value any, writer io.Writer) error {
+	string_ := util.ToString(value)
+	if _, err := io.WriteString(writer, string_); err == nil {
+		if self.Pretty && !strings.HasSuffix(string_, "\n") {
+			return util.WriteNewline(writer)
 		}
+		return nil
 	} else {
-		return WriteYAML(value, writer, "  ", strict, reflector)
+		return err
 	}
 }
 
-func PrintJSON(value any, writer io.Writer, pretty bool) error {
-	if pretty {
+func (self *Transcriber) PrintYAML(value any, writer io.Writer) error {
+	if self.Pretty {
+		self = self.WithIndent(terminal.Indent)
+		if terminal.Colorize {
+			if code, err := self.StringifyYAML(value); err == nil {
+				return ColorizeYAML(code, writer)
+			} else {
+				return err
+			}
+		}
+	}
+
+	return self.WriteYAML(value, writer)
+}
+
+func (self *Transcriber) PrintJSON(value any, writer io.Writer) error {
+	if self.Pretty {
 		if terminal.Colorize {
 			formatter := NewJSONColorFormatter(terminal.IndentSpaces)
 			if bytes, err := formatter.Marshal(value); err == nil {
@@ -82,28 +95,28 @@ func PrintJSON(value any, writer io.Writer, pretty bool) error {
 				return err
 			}
 		} else {
-			return WriteJSON(value, writer, terminal.Indent)
+			return self.WithIndent(terminal.Indent).WriteJSON(value, writer)
 		}
 	} else {
-		return WriteJSON(value, writer, "")
+		return self.WriteJSON(value, writer)
 	}
 }
 
-func PrintXJSON(value any, writer io.Writer, pretty bool, reflector *ard.Reflector) error {
-	if value_, err := ard.PrepareForEncodingXJSON(value, reflector); err == nil {
-		return PrintJSON(value_, writer, pretty)
+func (self *Transcriber) PrintXJSON(value any, writer io.Writer) error {
+	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+		return self.PrintJSON(value_, writer)
 	} else {
 		return err
 	}
 }
 
-func PrintXML(value any, writer io.Writer, pretty bool, reflector *ard.Reflector) error {
-	indent := ""
-	if pretty {
-		indent = terminal.Indent
+func (self *Transcriber) PrintXML(value any, writer io.Writer) error {
+	if self.Pretty {
+		self = self.WithIndent(terminal.Indent)
 	}
-	if err := WriteXML(value, writer, indent, reflector); err == nil {
-		if pretty {
+
+	if err := self.WriteXML(value, writer); err == nil {
+		if self.Pretty {
 			return util.WriteNewline(writer)
 		} else {
 			return nil
@@ -113,28 +126,29 @@ func PrintXML(value any, writer io.Writer, pretty bool, reflector *ard.Reflector
 	}
 }
 
-func PrintXMLDocument(xmlDocument *etree.Document, writer io.Writer, pretty bool) error {
-	if pretty {
+func (self *Transcriber) PrintXMLDocument(xmlDocument *etree.Document, writer io.Writer) error {
+	if self.Pretty {
 		xmlDocument.Indent(terminal.IndentSpaces)
 	} else {
-		xmlDocument.Indent(0)
+		xmlDocument.Indent(len(self.Indent))
 	}
+
 	_, err := xmlDocument.WriteTo(writer)
 	return err
 }
 
-func PrintCBOR(value any, writer io.Writer, base64 bool) error {
-	return WriteCBOR(value, writer, base64)
+func (self *Transcriber) PrintCBOR(value any, writer io.Writer) error {
+	return self.WriteCBOR(value, writer)
 }
 
-func PrintMessagePack(value any, writer io.Writer, base64 bool) error {
-	return WriteMessagePack(value, writer, base64)
+func (self *Transcriber) PrintMessagePack(value any, writer io.Writer) error {
+	return self.WriteMessagePack(value, writer)
 }
 
-func PrintGo(value any, writer io.Writer, pretty bool) error {
-	if pretty {
-		return WriteGo(value, writer, terminal.Indent)
-	} else {
-		return WriteGo(value, writer, "")
+func (self *Transcriber) PrintGo(value any, writer io.Writer) error {
+	if self.Pretty {
+		self = self.WithIndent(terminal.Indent)
 	}
+
+	return self.WriteGo(value, writer)
 }

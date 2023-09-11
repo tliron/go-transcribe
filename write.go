@@ -5,6 +5,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/beevik/etree"
 	"github.com/fxamacker/cbor/v2"
@@ -13,7 +15,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Write(value any, format string, indent string, strict bool, writer io.Writer, base64 bool, reflector *ard.Reflector) error {
+func (self *Transcriber) Write(value any, writer io.Writer, format string) error {
 	// Special handling for bare strings (format is ignored)
 	if s, ok := value.(string); ok {
 		_, err := io.WriteString(writer, s)
@@ -22,47 +24,57 @@ func Write(value any, format string, indent string, strict bool, writer io.Write
 
 	// Special handling for XML etree document (format is ignored)
 	if xmlDocument, ok := value.(*etree.Document); ok {
-		return WriteXMLDocument(xmlDocument, writer, indent)
+		return self.WriteXMLDocument(xmlDocument, writer)
 	}
 
 	switch format {
 	case "yaml", "":
-		return WriteYAML(value, writer, indent, strict, reflector)
+		return self.WriteYAML(value, writer)
 
 	case "json":
-		return WriteJSON(value, writer, indent)
+		return self.WriteJSON(value, writer)
 
 	case "xjson":
-		return WriteXJSON(value, writer, indent, reflector)
+		return self.WriteXJSON(value, writer)
 
 	case "xml":
-		return WriteXML(value, writer, indent, reflector)
+		return self.WriteXML(value, writer)
 
 	case "cbor":
-		return WriteCBOR(value, writer, base64)
+		return self.WriteCBOR(value, writer)
 
 	case "messagepack":
-		return WriteMessagePack(value, writer, base64)
+		return self.WriteMessagePack(value, writer)
 
 	case "go":
-		return WriteGo(value, writer, indent)
+		return self.WriteGo(value, writer)
 
 	default:
 		return fmt.Errorf("unsupported format: %q", format)
 	}
 }
 
-func WriteYAML(value any, writer io.Writer, indent string, strict bool, reflector *ard.Reflector) error {
-	if strict {
+// Opens the output file for write and calls [Transcriber.Write] on it.
+func (self *Transcriber) WriteToFile(value any, output string, format string) error {
+	if f, err := OpenFileForWrite(output); err == nil {
+		defer f.Close()
+		return self.Write(value, f, format)
+	} else {
+		return err
+	}
+}
+
+func (self *Transcriber) WriteYAML(value any, writer io.Writer) error {
+	if self.Strict {
 		var err error
-		if value, err = ard.ToYAMLDocumentNode(value, true, reflector); err != nil {
+		if value, err = ard.ToYAMLDocumentNode(value, true, self.Reflector); err != nil {
 			return err
 		}
 	}
 
 	encoder := yaml.NewEncoder(writer)
 
-	encoder.SetIndent(len(indent)) // This might not work as expected for tabs!
+	encoder.SetIndent(len(self.Indent)) // This might not work as expected for tabs!
 	// BUG: currently does not allow an indent value of 1, see: https://github.com/go-yaml/yaml/issues/501
 
 	if slice, ok := value.([]any); !ok {
@@ -79,22 +91,22 @@ func WriteYAML(value any, writer io.Writer, indent string, strict bool, reflecto
 	}
 }
 
-func WriteJSON(value any, writer io.Writer, indent string) error {
+func (self *Transcriber) WriteJSON(value any, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
-	encoder.SetIndent("", indent)
+	encoder.SetIndent("", self.Indent)
 	return encoder.Encode(value)
 }
 
-func WriteXJSON(value any, writer io.Writer, indent string, reflector *ard.Reflector) error {
-	if value_, err := ard.PrepareForEncodingXJSON(value, reflector); err == nil {
-		return WriteJSON(value_, writer, indent)
+func (self *Transcriber) WriteXJSON(value any, writer io.Writer) error {
+	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+		return self.WriteJSON(value_, writer)
 	} else {
 		return err
 	}
 }
 
-func WriteXML(value any, writer io.Writer, indent string, reflector *ard.Reflector) error {
-	value, err := ard.PrepareForEncodingXML(value, reflector)
+func (self *Transcriber) WriteXML(value any, writer io.Writer) error {
+	value, err := ard.PrepareForEncodingXML(value, self.Reflector)
 	if err != nil {
 		return err
 	}
@@ -104,12 +116,12 @@ func WriteXML(value any, writer io.Writer, indent string, reflector *ard.Reflect
 	}
 
 	encoder := xml.NewEncoder(writer)
-	encoder.Indent("", indent)
+	encoder.Indent("", self.Indent)
 	if err := encoder.Encode(value); err != nil {
 		return err
 	}
 
-	if indent == "" {
+	if self.Indent == "" {
 		// When there's no indent the XML encoder does not emit a final newline
 		// (We want it for consistency with YAML and JSON)
 		if _, err := io.WriteString(writer, "\n"); err != nil {
@@ -120,15 +132,15 @@ func WriteXML(value any, writer io.Writer, indent string, reflector *ard.Reflect
 	return nil
 }
 
-func WriteXMLDocument(xmlDocument *etree.Document, writer io.Writer, indent string) error {
-	xmlDocument.Indent(len(indent))
+func (self *Transcriber) WriteXMLDocument(xmlDocument *etree.Document, writer io.Writer) error {
+	xmlDocument.Indent(len(self.Indent))
 	_, err := xmlDocument.WriteTo(writer)
 	return err
 }
 
-func WriteCBOR(value any, writer io.Writer, base64 bool) error {
-	if base64 {
-		if value_, err := StringifyCBOR(value); err == nil {
+func (self *Transcriber) WriteCBOR(value any, writer io.Writer) error {
+	if self.Base64 {
+		if value_, err := self.StringifyCBOR(value); err == nil {
 			_, err = io.WriteString(writer, value_)
 			return err
 		} else {
@@ -140,11 +152,11 @@ func WriteCBOR(value any, writer io.Writer, base64 bool) error {
 	}
 }
 
-func WriteMessagePack(value any, writer io.Writer, base64 bool) error {
+func (self *Transcriber) WriteMessagePack(value any, writer io.Writer) error {
 	// MessagePack encoder has problems with map[any]any
 	if value_, err := ard.ValidCopyMapsToStringMaps(value, nil); err == nil {
-		if base64 {
-			if value__, err := StringifyMessagePack(value_); err == nil {
+		if self.Base64 {
+			if value__, err := self.StringifyMessagePack(value_); err == nil {
 				_, err = io.WriteString(writer, value__)
 				return err
 			} else {
@@ -159,7 +171,15 @@ func WriteMessagePack(value any, writer io.Writer, base64 bool) error {
 	}
 }
 
-func WriteGo(value any, writer io.Writer, indent string) error {
-	NewUtterConfig(indent).Fdump(writer, value)
+func (self *Transcriber) WriteGo(value any, writer io.Writer) error {
+	self.NewUtterConfig().Fdump(writer, value)
 	return nil
+}
+
+func OpenFileForWrite(path string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(path), DIRECTORY_WRITE_PERMISSIONS); err == nil {
+		return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, FILE_WRITE_PERMISSIONS)
+	} else {
+		return nil, err
+	}
 }
