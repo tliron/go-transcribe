@@ -7,18 +7,20 @@ Transcribe for Go
 
 Go programs often need to output data in a structured representation format, such as
 JSON or YAML. But why not provide wider compatibility and support all common formats,
-letting the user choose? This library provides a unified API over several formats.
+letting the user choose? This library provides a unified API over conversion to several
+formats.
 
-It also supports "pretty" printing to terminals with semantic colorization, including on
-Windows terminals, which defy common standards.
-
-Binary formats (CBOR, MessagePack) can be output as is (incompatible with terminals) or
-textualized into [Base64](https://datatracker.ietf.org/doc/html/rfc4648#section-4).
+It also supports "pretty" printing to terminals with semantic colorization (including
+"it just works" support for colorizing Windows terminals, which defy common standards).
 
 Supported formats:
 
 * [YAML](https://yaml.org/)
-* [JSON](https://www.json.org/), including a convention for extending JSON to support additional types
+* [JSON](https://www.json.org/), including a convention for extending JSON to support
+  additional type differentiation
 * [XML](https://www.w3.org/XML/) via a conventional schema
 * [CBOR](https://cbor.io/)
 * [MessagePack](https://msgpack.org/)
+
+The binary formats (CBOR, MessagePack) can be output as is (incompatible with terminals)
+or textualized into [Base64](https://datatracker.ietf.org/doc/html/rfc4648#section-4).

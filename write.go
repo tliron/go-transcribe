@@ -11,14 +11,13 @@ import (
 	"github.com/beevik/etree"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/tliron/go-ard"
-	"github.com/tliron/kutil/util"
 	"gopkg.in/yaml.v3"
 )
 
 func (self *Transcriber) Write(value any, writer io.Writer, format string) error {
 	// Special handling for bare strings (format is ignored)
-	if s, ok := value.(string); ok {
-		_, err := io.WriteString(writer, s)
+	if string_, ok := value.(string); ok {
+		_, err := io.WriteString(writer, string_)
 		return err
 	}
 
@@ -163,7 +162,7 @@ func (self *Transcriber) WriteMessagePack(value any, writer io.Writer) error {
 				return err
 			}
 		} else {
-			encoder := util.NewMessagePackEncoder(writer)
+			encoder := ard.NewMessagePackEncoder(writer)
 			return encoder.Encode(value_)
 		}
 	} else {

@@ -91,7 +91,7 @@ func (self *Transcriber) StringifyCBOR(value any) (string, error) {
 // Note: will always use base64.
 func (self *Transcriber) StringifyMessagePack(value any) (string, error) {
 	var buffer bytes.Buffer
-	encoder := util.NewMessagePackEncoder(&buffer)
+	encoder := ard.NewMessagePackEncoder(&buffer)
 	if err := encoder.Encode(value); err == nil {
 		return util.ToBase64(buffer.Bytes()), nil
 	} else {

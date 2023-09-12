@@ -9,9 +9,8 @@ require (
 	github.com/goccy/go-yaml v1.11.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/kortschak/utter v1.5.0
-	github.com/tliron/go-ard v0.2.0
-	github.com/tliron/kutil v0.3.0
-	github.com/vmihailenco/msgpack/v5 v5.3.5
+	github.com/tliron/go-ard v0.2.1
+	github.com/tliron/kutil v0.3.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -59,6 +58,7 @@ require (
 	github.com/tliron/exturl v0.4.0 // indirect
 	github.com/tliron/yamlkeys v1.3.6 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
