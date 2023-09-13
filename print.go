@@ -3,6 +3,7 @@ package transcribe
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -11,6 +12,8 @@ import (
 	"github.com/tliron/kutil/util"
 )
 
+// If writer is nil will default to [os.Stdout].
+//
 // When Pretty is true, takes into account [terminal.Colorize] and uses
 // [terminal.Indent] or [terminal.IndentSpaces], overriding our Indent.
 //
@@ -55,6 +58,10 @@ func (self *Transcriber) Print(value any, writer io.Writer, format string) error
 }
 
 func (self *Transcriber) PrintString(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	string_ := util.ToString(value)
 	if _, err := io.WriteString(writer, string_); err == nil {
 		if self.Pretty && !strings.HasSuffix(string_, "\n") {
@@ -67,6 +74,10 @@ func (self *Transcriber) PrintString(value any, writer io.Writer) error {
 }
 
 func (self *Transcriber) PrintYAML(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if self.Pretty {
 		self = self.WithIndent(terminal.Indent)
 		if terminal.Colorize {
@@ -82,6 +93,10 @@ func (self *Transcriber) PrintYAML(value any, writer io.Writer) error {
 }
 
 func (self *Transcriber) PrintJSON(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if self.Pretty {
 		if terminal.Colorize {
 			formatter := NewJSONColorFormatter(terminal.IndentSpaces)
@@ -103,6 +118,10 @@ func (self *Transcriber) PrintJSON(value any, writer io.Writer) error {
 }
 
 func (self *Transcriber) PrintXJSON(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
 		return self.PrintJSON(value_, writer)
 	} else {
@@ -111,6 +130,10 @@ func (self *Transcriber) PrintXJSON(value any, writer io.Writer) error {
 }
 
 func (self *Transcriber) PrintXML(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if self.Pretty {
 		self = self.WithIndent(terminal.Indent)
 	}
@@ -127,6 +150,10 @@ func (self *Transcriber) PrintXML(value any, writer io.Writer) error {
 }
 
 func (self *Transcriber) PrintXMLDocument(xmlDocument *etree.Document, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if self.Pretty {
 		xmlDocument.Indent(terminal.IndentSpaces)
 	} else {
@@ -138,14 +165,26 @@ func (self *Transcriber) PrintXMLDocument(xmlDocument *etree.Document, writer io
 }
 
 func (self *Transcriber) PrintCBOR(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	return self.WriteCBOR(value, writer)
 }
 
 func (self *Transcriber) PrintMessagePack(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	return self.WriteMessagePack(value, writer)
 }
 
 func (self *Transcriber) PrintGo(value any, writer io.Writer) error {
+	if writer == nil {
+		writer = os.Stdout
+	}
+
 	if self.Pretty {
 		self = self.WithIndent(terminal.Indent)
 	}
