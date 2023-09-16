@@ -20,10 +20,10 @@ func (self *Transcriber) Stringify(value any, format string) (string, error) {
 		return self.StringifyJSON(value)
 
 	case "xjson":
-		return self.StringifyXJSON(value)
+		return self.StringifyXJSON(value, false)
 
 	case "xml":
-		return self.StringifyXML(value)
+		return self.StringifyXML(value, false)
 
 	case "cbor":
 		return self.StringifyCBOR(value)
@@ -62,17 +62,17 @@ func (self *Transcriber) StringifyJSON(value any) (string, error) {
 	}
 }
 
-func (self *Transcriber) StringifyXJSON(value any) (string, error) {
-	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+func (self *Transcriber) StringifyXJSON(value any, inPlace bool) (string, error) {
+	if value_, err := ard.PrepareForEncodingXJSON(value, inPlace, self.Reflector); err == nil {
 		return self.StringifyJSON(value_)
 	} else {
 		return "", err
 	}
 }
 
-func (self *Transcriber) StringifyXML(value any) (string, error) {
+func (self *Transcriber) StringifyXML(value any, inPlace bool) (string, error) {
 	var writer strings.Builder
-	if err := self.WriteXML(value, &writer); err == nil {
+	if err := self.WriteXML(value, &writer, inPlace); err == nil {
 		return writer.String(), nil
 	} else {
 		return "", err

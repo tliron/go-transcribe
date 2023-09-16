@@ -38,10 +38,10 @@ func (self *Transcriber) Print(value any, writer io.Writer, format string) error
 		return self.PrintJSON(value, writer)
 
 	case "xjson":
-		return self.PrintXJSON(value, writer)
+		return self.PrintXJSON(value, writer, false)
 
 	case "xml":
-		return self.PrintXML(value, writer)
+		return self.PrintXML(value, writer, false)
 
 	case "cbor":
 		return self.PrintCBOR(value, writer)
@@ -117,19 +117,19 @@ func (self *Transcriber) PrintJSON(value any, writer io.Writer) error {
 	}
 }
 
-func (self *Transcriber) PrintXJSON(value any, writer io.Writer) error {
+func (self *Transcriber) PrintXJSON(value any, writer io.Writer, inPlace bool) error {
 	if writer == nil {
 		writer = os.Stdout
 	}
 
-	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+	if value_, err := ard.PrepareForEncodingXJSON(value, inPlace, self.Reflector); err == nil {
 		return self.PrintJSON(value_, writer)
 	} else {
 		return err
 	}
 }
 
-func (self *Transcriber) PrintXML(value any, writer io.Writer) error {
+func (self *Transcriber) PrintXML(value any, writer io.Writer, inPlace bool) error {
 	if writer == nil {
 		writer = os.Stdout
 	}
@@ -138,7 +138,7 @@ func (self *Transcriber) PrintXML(value any, writer io.Writer) error {
 		self = self.WithIndent(terminal.Indent)
 	}
 
-	if err := self.WriteXML(value, writer); err == nil {
+	if err := self.WriteXML(value, writer, inPlace); err == nil {
 		if self.Pretty {
 			return util.WriteNewline(writer)
 		} else {

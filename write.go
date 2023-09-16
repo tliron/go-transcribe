@@ -34,10 +34,10 @@ func (self *Transcriber) Write(value any, writer io.Writer, format string) error
 		return self.WriteJSON(value, writer)
 
 	case "xjson":
-		return self.WriteXJSON(value, writer)
+		return self.WriteXJSON(value, writer, false)
 
 	case "xml":
-		return self.WriteXML(value, writer)
+		return self.WriteXML(value, writer, false)
 
 	case "cbor":
 		return self.WriteCBOR(value, writer)
@@ -53,7 +53,7 @@ func (self *Transcriber) Write(value any, writer io.Writer, format string) error
 	}
 }
 
-// Opens the output file for write and calls [Transcriber.Write] on it.
+// Creates or opens the output file for write and calls [Transcriber.Write] on it.
 func (self *Transcriber) WriteToFile(value any, output string, format string) error {
 	if f, err := OpenFileForWrite(output); err == nil {
 		defer f.Close()
@@ -96,16 +96,16 @@ func (self *Transcriber) WriteJSON(value any, writer io.Writer) error {
 	return encoder.Encode(value)
 }
 
-func (self *Transcriber) WriteXJSON(value any, writer io.Writer) error {
-	if value_, err := ard.PrepareForEncodingXJSON(value, self.Reflector); err == nil {
+func (self *Transcriber) WriteXJSON(value any, writer io.Writer, inPlace bool) error {
+	if value_, err := ard.PrepareForEncodingXJSON(value, inPlace, self.Reflector); err == nil {
 		return self.WriteJSON(value_, writer)
 	} else {
 		return err
 	}
 }
 
-func (self *Transcriber) WriteXML(value any, writer io.Writer) error {
-	value, err := ard.PrepareForEncodingXML(value, self.Reflector)
+func (self *Transcriber) WriteXML(value any, writer io.Writer, inPlace bool) error {
+	value, err := ard.PrepareForEncodingXML(value, inPlace, self.Reflector)
 	if err != nil {
 		return err
 	}

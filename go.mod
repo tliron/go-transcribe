@@ -6,11 +6,11 @@ require (
 	github.com/beevik/etree v1.2.0
 	github.com/fatih/color v1.15.0
 	github.com/fxamacker/cbor/v2 v2.5.0
-	github.com/goccy/go-yaml v1.11.0
+	github.com/goccy/go-yaml v1.11.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/kortschak/utter v1.5.0
-	github.com/tliron/go-ard v0.2.1
-	github.com/tliron/kutil v0.3.2
+	github.com/tliron/go-ard v0.2.4
+	github.com/tliron/kutil v0.3.3
 	gopkg.in/yaml.v3 v3.0.1
 )
 
