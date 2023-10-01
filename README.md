@@ -21,6 +21,7 @@ Supported formats:
 * [XML](https://www.w3.org/XML/) via a conventional schema
 * [CBOR](https://cbor.io/)
 * [MessagePack](https://msgpack.org/)
+* [Go](https://github.com/kortschak/utter)
 
 The binary formats (CBOR, MessagePack) can be output as is (incompatible with terminals)
 or textualized into [Base64](https://datatracker.ietf.org/doc/html/rfc4648#section-4).
