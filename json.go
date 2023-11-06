@@ -17,7 +17,7 @@ func (self *Transcriber) WriteJSON(value any) error {
 		writer = os.Stdout
 	}
 
-	if self.ForTerminal && terminal.Colorize {
+	if self.ForTerminal && terminal.ColorizeStdout {
 		formatter := NewJSONColorFormatter(terminal.IndentSpaces)
 		if bytes, err := formatter.Marshal(value); err == nil {
 			if _, err := writer.Write(bytes); err == nil {

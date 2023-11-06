@@ -22,7 +22,7 @@ func (self *Transcriber) WriteYAML(value any) error {
 		writer = os.Stdout
 	}
 
-	if self.ForTerminal && terminal.Colorize {
+	if self.ForTerminal && terminal.ColorizeStdout {
 		// Unfortunately we need to stringify before colorizing
 		self = self.Clone()
 		self.ForTerminal = false
