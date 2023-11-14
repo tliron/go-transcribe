@@ -22,16 +22,25 @@ func (self *Transcriber) WriteYAML(value any) error {
 		writer = os.Stdout
 	}
 
-	if self.ForTerminal && terminal.ColorizeStdout {
-		// Unfortunately we need to stringify before colorizing
-		self = self.Clone()
-		self.ForTerminal = false
-		self.Indent = terminal.Indent
-
-		if code, err := self.StringifyYAML(value); err == nil {
-			return ColorizeYAML(code, writer)
+	if self.ForTerminal {
+		var colorize bool
+		if self.Writer == os.Stderr {
+			colorize = terminal.ColorizeStderr
 		} else {
-			return err
+			colorize = terminal.ColorizeStdout
+		}
+
+		if colorize {
+			// Unfortunately we need to stringify before colorizing
+			self = self.Clone()
+			self.ForTerminal = false
+			self.Indent = terminal.Indent
+
+			if code, err := self.StringifyYAML(value); err == nil {
+				return ColorizeYAML(code, writer)
+			} else {
+				return err
+			}
 		}
 	}
 

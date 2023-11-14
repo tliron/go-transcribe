@@ -9,8 +9,8 @@ require (
 	github.com/goccy/go-yaml v1.11.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/kortschak/utter v1.5.0
-	github.com/tliron/go-ard v0.2.14
-	github.com/tliron/kutil v0.3.9
+	github.com/tliron/go-ard v0.2.15
+	github.com/tliron/kutil v0.3.10
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -55,20 +55,20 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.1 // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
-	github.com/tliron/commonlog v0.2.4 // indirect
+	github.com/tliron/commonlog v0.2.6 // indirect
 	github.com/tliron/exturl v0.4.2 // indirect
 	github.com/tliron/yamlkeys v1.3.6 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

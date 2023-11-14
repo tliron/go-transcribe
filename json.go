@@ -17,16 +17,25 @@ func (self *Transcriber) WriteJSON(value any) error {
 		writer = os.Stdout
 	}
 
-	if self.ForTerminal && terminal.ColorizeStdout {
-		formatter := NewJSONColorFormatter(terminal.IndentSpaces)
-		if bytes, err := formatter.Marshal(value); err == nil {
-			if _, err := writer.Write(bytes); err == nil {
-				return util.WriteNewline(writer)
+	if self.ForTerminal {
+		var colorize bool
+		if self.Writer == os.Stderr {
+			colorize = terminal.ColorizeStderr
+		} else {
+			colorize = terminal.ColorizeStdout
+		}
+
+		if colorize {
+			formatter := NewJSONColorFormatter(terminal.IndentSpaces)
+			if bytes, err := formatter.Marshal(value); err == nil {
+				if _, err := writer.Write(bytes); err == nil {
+					return util.WriteNewline(writer)
+				} else {
+					return err
+				}
 			} else {
 				return err
 			}
-		} else {
-			return err
 		}
 	}
 
