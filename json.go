@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/hokaccha/go-prettyjson"
+	"github.com/tliron/go-ard"
 	"github.com/tliron/kutil/terminal"
 	"github.com/tliron/kutil/util"
 )
@@ -15,6 +16,12 @@ func (self *Transcriber) WriteJSON(value any) error {
 	writer := self.Writer
 	if writer == nil {
 		writer = os.Stdout
+	}
+
+	// JSON encoders have problems with map[any]any
+	var err error
+	if value, err = ard.ValidCopyMapsToStringMaps(value, nil); err != nil {
+		return err
 	}
 
 	if self.ForTerminal {
