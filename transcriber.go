@@ -3,6 +3,7 @@ package transcribe
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/beevik/etree"
 	"github.com/tliron/go-ard"
@@ -28,6 +29,66 @@ type Transcriber struct {
 
 func NewTranscriber() *Transcriber {
 	return new(Transcriber)
+}
+
+func (self *Transcriber) SetFile(file string) *Transcriber {
+	self = self.Clone()
+	self.File = file
+	return self
+}
+
+func (self *Transcriber) SetWriter(writer io.Writer) *Transcriber {
+	self = self.Clone()
+	self.Writer = writer
+	return self
+}
+
+func (self *Transcriber) SetFormat(format string) *Transcriber {
+	self = self.Clone()
+	self.Format = format
+	return self
+}
+
+func (self *Transcriber) SetForTerminal(forTerminal bool) *Transcriber {
+	self = self.Clone()
+	self.ForTerminal = forTerminal
+	return self
+}
+
+func (self *Transcriber) SetIndent(indent string) *Transcriber {
+	self = self.Clone()
+	self.Indent = indent
+	return self
+}
+
+func (self *Transcriber) SetIndentSpaces(spaces int) *Transcriber {
+	self = self.Clone()
+	self.Indent = strings.Repeat(" ", spaces)
+	return self
+}
+
+func (self *Transcriber) SetStrict(strict bool) *Transcriber {
+	self = self.Clone()
+	self.Strict = strict
+	return self
+}
+
+func (self *Transcriber) SetBase64(base64 bool) *Transcriber {
+	self = self.Clone()
+	self.Base64 = base64
+	return self
+}
+
+func (self *Transcriber) SetInPlace(inPlace bool) *Transcriber {
+	self = self.Clone()
+	self.InPlace = inPlace
+	return self
+}
+
+func (self *Transcriber) SetReflector(reflector *ard.Reflector) *Transcriber {
+	self = self.Clone()
+	self.Reflector = reflector
+	return self
 }
 
 func (self *Transcriber) Clone() *Transcriber {

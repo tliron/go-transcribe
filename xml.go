@@ -10,6 +10,9 @@ import (
 	"github.com/tliron/kutil/util"
 )
 
+var xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>`
+var xmlHeaderNewline = xmlHeader + "\n"
+
 // If inPlace is false then the function is non-destructive:
 // the written data structure is a [ard.ValidCopy] of the value
 // argument. Otherwise, the value may be changed during
@@ -27,7 +30,12 @@ func (self *Transcriber) WriteXML(value any) error {
 
 	self = self.fixIndentForTerminal()
 
-	if _, err := io.WriteString(writer, xml.Header); err != nil {
+	if self.Indent == "" {
+		_, err = io.WriteString(writer, xmlHeader)
+	} else {
+		_, err = io.WriteString(writer, xmlHeaderNewline)
+	}
+	if err != nil {
 		return err
 	}
 
@@ -37,13 +45,7 @@ func (self *Transcriber) WriteXML(value any) error {
 		return err
 	}
 
-	if self.ForTerminal || (self.Indent == "") {
-		// When there's no indent the XML encoder does not emit a final newline
-		// (We want it for consistency with YAML and JSON)
-		return util.WriteNewline(writer)
-	} else {
-		return nil
-	}
+	return util.WriteNewline(writer)
 }
 
 func (self *Transcriber) StringifyXML(value any) (string, error) {

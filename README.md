@@ -7,8 +7,8 @@ Transcribe for Go
 
 Go programs often need to output data in a structured representation format, such as
 JSON or YAML. But why not provide wider compatibility and support all common formats,
-letting the user choose? This library provides a unified API over conversion to several
-formats.
+letting the user choose? This library provides a unified API over transcribing stuctured
+data to several formats.
 
 It also supports "pretty" printing to terminals with semantic colorization (including
 "it just works" support for colorizing Windows terminals, which defy common standards).
