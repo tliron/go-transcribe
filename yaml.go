@@ -57,7 +57,11 @@ func (self *Transcriber) WriteYAML(value any) error {
 
 	// This might not work as expected for tabs!
 	// BUG: currently does not allow an indent value of 1, see: https://github.com/go-yaml/yaml/issues/501
-	encoder.SetIndent(len(self.Indent))
+	indent := len(self.Indent)
+	if indent < 2 {
+		indent = 2
+	}
+	encoder.SetIndent(indent)
 
 	if slice, ok := value.([]any); !ok {
 		return encoder.Encode(value)
